@@ -1665,7 +1665,7 @@ class API:
 
         LOGGER.debug('processing property parameters')
         for k, v in request.params.items():
-            if k not in reserved_fieldnames and k in list(p.fields.keys()):
+            if k not in reserved_fieldnames:
                 LOGGER.debug(f'Adding property filter {k}={v}')
                 properties.append((k, v))
 
@@ -1682,11 +1682,11 @@ class API:
                     order = s[0]
                     prop = s[1:]
 
-                if prop not in p.fields.keys():
-                    msg = 'bad sort property'
-                    return self.get_exception(
-                        HTTPStatus.BAD_REQUEST, headers, request.format,
-                        'InvalidParameterValue', msg)
+                # if prop not in p.fields.keys():
+                #     msg = 'bad sort property'
+                #     return self.get_exception(
+                #         HTTPStatus.BAD_REQUEST, headers, request.format,
+                #         'InvalidParameterValue', msg)
 
                 sortby.append({'property': prop, 'order': order})
         else:
