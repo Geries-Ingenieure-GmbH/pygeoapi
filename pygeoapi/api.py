@@ -54,6 +54,8 @@ import urllib.parse
 from dateutil.parser import parse as dateparse
 from pygeofilter.parsers.ecql import parse as parse_ecql_text
 from pygeofilter.parsers.cql_json import parse as parse_cql_json
+from pygeofilter.parsers.cql2_json import parse as parse_cql2_json
+
 from pyproj.exceptions import CRSError
 import pytz
 from shapely.errors import WKTReadingError
@@ -1720,13 +1722,25 @@ class API:
         else:
             skip_geometry = False
 
+        LOGGER.debug('Processing filter-lang parameter')
+        filter_lang = request.params.get('filter-lang')
+        # Currently only cql-text is handled, but it is optional
+        if filter_lang not in [None, 'cql-text', "cql2-text"]:
+            msg = 'Invalid filter language'
+            return self.get_exception(
+                HTTPStatus.BAD_REQUEST, headers, request.format,
+                'InvalidParameterValue', msg)
+        
         LOGGER.debug('Processing filter-crs parameter')
         filter_crs_uri = request.params.get('filter-crs', DEFAULT_CRS)
         LOGGER.debug('processing filter parameter')
         cql_text = request.params.get('filter')
         if cql_text is not None:
             try:
-                filter_ = parse_ecql_text(cql_text)
+                if filter_lang == 'cql-text':
+                    filter_ = parse_ecql_text(cql_text)
+                elif filter_lang == 'cql2-text':
+                    filter_ = parse_cql2_json(cql_text)
                 filter_ = modify_pygeofilter(
                     filter_,
                     filter_crs_uri=filter_crs_uri,
@@ -1742,14 +1756,6 @@ class API:
         else:
             filter_ = None
 
-        LOGGER.debug('Processing filter-lang parameter')
-        filter_lang = request.params.get('filter-lang')
-        # Currently only cql-text is handled, but it is optional
-        if filter_lang not in [None, 'cql-text']:
-            msg = 'Invalid filter language'
-            return self.get_exception(
-                HTTPStatus.BAD_REQUEST, headers, request.format,
-                'InvalidParameterValue', msg)
         # Get provider locale (if any)
         prv_locale = l10n.get_plugin_locale(provider_def, request.raw_locale)
 
