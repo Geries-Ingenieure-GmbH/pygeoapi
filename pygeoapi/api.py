@@ -54,7 +54,7 @@ import urllib.parse
 from dateutil.parser import parse as dateparse
 from pygeofilter.parsers.ecql import parse as parse_ecql_text
 from pygeofilter.parsers.cql_json import parse as parse_cql_json
-from pygeofilter.parsers.cql2_json import parse as parse_cql2_json
+from pygeofilter.parsers.cql2_text import parse as parse_cql2_text
 
 from pyproj.exceptions import CRSError
 import pytz
@@ -1740,7 +1740,7 @@ class API:
                 if filter_lang == 'cql-text':
                     filter_ = parse_ecql_text(cql_text)
                 elif filter_lang == 'cql2-text':
-                    filter_ = parse_cql2_json(cql_text)
+                    filter_ = parse_cql2_text(cql_text)
                 filter_ = modify_pygeofilter(
                     filter_,
                     filter_crs_uri=filter_crs_uri,
