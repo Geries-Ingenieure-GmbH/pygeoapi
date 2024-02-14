@@ -34,10 +34,11 @@
 
 import asyncio
 import os
-from typing import Callable, Union
+from typing import Callable, Union, Any
 from pathlib import Path
 
 import click
+import msgspec
 
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
@@ -79,6 +80,9 @@ API_RULES = get_api_rules(CONFIG)
 
 api_ = API(CONFIG, OPENAPI)
 
+class MsgspecResponse(JSONResponse):
+    def render(self, content: Any) -> bytes:
+        return msgspec.json.encode(content)
 
 def call_api_threadsafe(
     loop: asyncio.AbstractEventLoop, api_call: Callable, *args
@@ -99,7 +103,7 @@ def call_api_threadsafe(
 async def get_response(
         api_call,
         *args,
-) -> Union[Response, JSONResponse, HTMLResponse]:
+) -> Union[Response, MsgspecResponse, HTMLResponse]:
     """
     Creates a Starlette Response object and updates matching headers.
 
@@ -121,7 +125,7 @@ async def get_response(
         response = HTMLResponse(content=content, status_code=status)
     else:
         if isinstance(content, dict):
-            response = JSONResponse(content, status_code=status)
+            response = MsgspecResponse(content, status_code=status)
         else:
             response = Response(content, status_code=status)
 
