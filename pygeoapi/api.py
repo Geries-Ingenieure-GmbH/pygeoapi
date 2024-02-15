@@ -1916,7 +1916,7 @@ class API:
                 self, content, dataset, id_field=(p.uri_field or 'id')
             )
 
-        return headers, HTTPStatus.OK, to_json(content, self.pretty_print)
+        return headers, HTTPStatus.OK, content
 
     @gzip
     @pre_process
